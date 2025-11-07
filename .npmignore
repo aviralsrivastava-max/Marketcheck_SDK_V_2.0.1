@@ -1,0 +1,33 @@
+# Test files
+test-*.js
+*-test.js
+
+# TypeScript source files (only ship compiled JS)
+*.ts
+!*.d.ts
+
+# Build config
+tsconfig.json
+openapitools.json
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Node modules
+node_modules/

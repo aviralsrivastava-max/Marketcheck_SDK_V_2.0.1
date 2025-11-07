@@ -1,0 +1,25 @@
+wwwroot/*.js
+node_modules
+typings
+dist
+
+# OpenAPI Generator templates
+out/
+
+# Built packages
+*.tgz
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
