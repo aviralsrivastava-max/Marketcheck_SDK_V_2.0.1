@@ -7,7 +7,9 @@ dist
 docs/
 site/
 mkdocs.yml
-# OpenAPI Generator templates
+# OpenAPI Generator files
+.openapi-generator/
+.openapi-generator-ignore
 out/
 
 # Built packages
