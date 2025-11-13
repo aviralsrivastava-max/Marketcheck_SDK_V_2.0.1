@@ -104,13 +104,15 @@ export class Configuration {
         this.serverIndex = param.serverIndex;
         this.baseOptions = {
             ...param.baseOptions,
+            // Set default timeout if not provided (30 seconds)
+            timeout: param.baseOptions?.timeout ?? 30000,
             headers: {
                 ...param.baseOptions?.headers,
             },
         };
         this.formDataCtor = param.formDataCtor;
 
-        // Initialize rate limit manager
+        // Initialize rate limit manager with proactive monitoring and automatic retry
         this.rateLimitManager = new RateLimitManager();
     }
 

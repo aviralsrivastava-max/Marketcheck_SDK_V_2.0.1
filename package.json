@@ -1,28 +1,37 @@
 {
   "name": "marketcheck-api-sdk",
   "version": "3.0.0",
-  "description": "OpenAPI client for marketcheck-api-sdk",
-  "author": "OpenAPI-Generator Contributors",
+  "description": "Official TypeScript SDK for MarketCheck Automotive API with advanced rate limiting and automatic retry",
+  "author": "MarketCheck",
   "repository": {
     "type": "git",
-    "url": "https://github.com/GIT_USER_ID/GIT_REPO_ID.git"
+    "url": "https://github.com/marketcheck/marketcheck-api-sdk-typescript.git"
   },
   "keywords": [
-    "axios",
+    "marketcheck",
+    "automotive",
+    "api",
+    "sdk",
     "typescript",
-    "openapi-client",
-    "openapi-generator",
-    "marketcheck-api-sdk"
+    "vehicle-data",
+    "vin-decoder",
+    "car-listings",
+    "rate-limiting"
   ],
-  "license": "Unlicense",
+  "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "typings": "./dist/index.d.ts",
   "files": [
     "dist/**/*"
   ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
   "dependencies": {
-    "axios": "^1.6.1"
+    "axios": "^1.6.1",
+    "dotenv": "^17.2.3"
   },
   "devDependencies": {
     "@types/node": "^24.10.0",

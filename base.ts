@@ -42,6 +42,13 @@ export class BaseAPI {
             this.configuration = configuration;
             this.basePath = configuration.basePath ?? basePath;
 
+            // CRITICAL FIX: Create a new axios instance for each API instance to avoid
+            // sharing interceptors across different API classes
+            // Without this, all API instances share globalAxios and interceptors stack up
+            if (axios === globalAxios) {
+                this.axios = globalAxios.create(configuration.baseOptions);
+            }
+
             // Install rate limit interceptors (only once per axios instance)
             if (!this.interceptorsInstalled) {
                 this.installRateLimitInterceptors();
@@ -82,11 +89,68 @@ export class BaseAPI {
                 manager.updateFromResponse(response);
                 return response;
             },
-            (error) => {
-                // Update state even on error responses
-                if (error.response) {
+            async (error) => {
+                // V2: Special handling for 429 Rate Limit errors with automatic retry
+                if (error.response && error.response.status === 429) {
+                    // Track retry count
+                    const config = error.config;
+                    config._retryCount = config._retryCount || 0;
+
+                    // Max 3 retries for 429 errors
+                    if (config._retryCount < 3) {
+                        config._retryCount++;
+
+                        // Pass 429 error to manager for tracking and backoff calculation
+                        manager.handle429Error(error, error.response);
+
+                        // Extract Retry-After header (in seconds)
+                        const retryAfter = error.response.headers['retry-after'];
+                        let retryDelay = 1000; // Default 1 second
+                        const MAX_RETRY_DELAY = 60000; // Cap at 60 seconds
+
+                        if (retryAfter) {
+                            const retryAfterSeconds = parseInt(retryAfter, 10);
+
+                            // Check if Retry-After is unreasonably large (indicates quota exhaustion)
+                            if (retryAfterSeconds > 60) {
+                                console.error(
+                                    `[MarketCheck SDK] Retry-After too large (${retryAfterSeconds}s = ${(retryAfterSeconds / 86400).toFixed(1)} days). ` +
+                                    `This indicates quota exhaustion or API limit. Capping retry at 60s and will likely fail.`
+                                );
+                                retryDelay = MAX_RETRY_DELAY;
+                            } else {
+                                retryDelay = retryAfterSeconds * 1000;
+                            }
+                        } else {
+                            // Exponential backoff: 1s, 2s, 4s
+                            retryDelay = 1000 * Math.pow(2, config._retryCount - 1);
+                            // Add jitter (±20%)
+                            const jitter = retryDelay * 0.2 * (Math.random() * 2 - 1);
+                            retryDelay = retryDelay + jitter;
+                        }
+
+                        console.warn(
+                            `[MarketCheck SDK] Retrying 429 error (attempt ${config._retryCount}/3) ` +
+                            `after ${(retryDelay / 1000).toFixed(2)}s`
+                        );
+
+                        // Wait for retry delay
+                        await new Promise(resolve => setTimeout(resolve, retryDelay));
+
+                        // Retry the request
+                        return this.axios(config);
+                    } else {
+                        // Max retries exceeded
+                        console.error(
+                            `[MarketCheck SDK] Max retries (3) exceeded for 429 error. Giving up.`
+                        );
+                        manager.handle429Error(error, error.response);
+                    }
+                } else if (error.response) {
+                    // Other errors - just update state
                     manager.updateFromResponse(error.response);
                 } else {
+                    // Network errors
                     manager.handleRequestError(error);
                 }
 

@@ -5,7 +5,8 @@ dist
 
 # Documentation
 docs/
-
+site/
+mkdocs.yml
 # OpenAPI Generator templates
 out/
 
